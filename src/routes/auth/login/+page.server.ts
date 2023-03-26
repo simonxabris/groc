@@ -1,11 +1,7 @@
-import { JWT_SECRET } from '$env/static/private';
 import type { User } from '$lib';
 import { createConnection } from '$lib/server';
-import { redirect } from '@sveltejs/kit';
-import * as jose from 'jose';
+import { error } from '@sveltejs/kit';
 import type { Actions } from './$types';
-
-const JwtSecret = new TextEncoder().encode(JWT_SECRET);
 
 const connection = createConnection();
 
@@ -15,9 +11,7 @@ export const actions: Actions = {
 		const email = data.get('email');
 
 		if (!email) {
-			return {
-				success: false
-			};
+			throw error(400, 'Email not provided');
 		}
 
 		const result = await connection.execute('SELECT * FROM User WHERE email = ?', [email], {
@@ -26,48 +20,50 @@ export const actions: Actions = {
 
 		const user = result.rows[0] as User | undefined;
 
+		const linkToken = crypto.randomUUID();
 		if (!user) {
 			// Registration flow
 			const newUserId = crypto.randomUUID();
 
 			try {
-				await connection.execute('INSERT INTO User (id, email) VALUES (?, ?)', [newUserId, email]);
-			} catch (error) {
-				console.log('Failed to save user', error);
-				return {
-					flow: 'registration',
-					success: false
-				};
+				await connection.transaction(async (tx) => {
+					await tx.execute('INSERT INTO User (id, email) VALUES (?, ?)', [newUserId, email]);
+					await tx.execute('INSERT INTO LinkTokens (token, user_id) VALUES (?, ?)', [
+						linkToken,
+						newUserId
+					]);
+				});
+			} catch (e) {
+				console.error('Failed to save user', e);
+				throw error(500);
 			}
 
-			const token = await new jose.SignJWT({ id: newUserId, email: email })
-				.setProtectedHeader({ alg: 'HS256' })
-				.setIssuedAt()
-				.setExpirationTime('1w')
-				.sign(JwtSecret);
-
-			console.log(event.url.hostname);
 			const loginUrl = new URL('/auth/login', event.url.origin);
-			loginUrl.searchParams.set('token', encodeURIComponent(token));
+			loginUrl.searchParams.set('token', encodeURIComponent(linkToken));
 
 			console.log('login URL: ', loginUrl.toString());
 
 			return {
-				flow: 'registration',
 				success: true
 			};
 		}
 
-		console.log('rows', user);
+		try {
+			await connection.execute('INSERT INTO LinkTokens (token, user_id) VALUES (?, ?)', [
+				linkToken,
+				user.id
+			]);
+		} catch (e) {
+			throw error(500);
+		}
 
-		const token = await new jose.SignJWT({ id: user.id, email: user.email })
-			.setProtectedHeader({ alg: 'HS256' })
-			.setIssuedAt()
-			.setExpirationTime('1w')
-			.sign(JwtSecret);
+		const loginUrl = new URL('/auth/login', event.url.origin);
+		loginUrl.searchParams.set('token', encodeURIComponent(linkToken));
 
-		event.cookies.set('auth', token, { path: '/' });
+		console.log('login URL: ', loginUrl.toString());
 
-		throw redirect(303, '/');
+		return {
+			success: true
+		};
 	}
 };
