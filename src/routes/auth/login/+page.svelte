@@ -33,10 +33,11 @@
 				class="w-full bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 rounded-md transition duration-200 dark:bg-blue-500 dark:hover:bg-blue-700"
 				>Login</button
 			>
+			{#if form?.success}
+				<p class="mt-4 text-gray-700 dark:text-gray-300">
+					Check your email and sign in using the magic link we just sent you
+				</p>
+			{/if}
 		</form>
 	</div>
 </div>
-
-{#if form?.success}
-	<p>Check out your email and sign in using the magic link sent to you</p>
-{/if}

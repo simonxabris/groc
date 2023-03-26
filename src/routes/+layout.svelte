@@ -8,4 +8,8 @@
 	</div>
 </header>
 
-<slot />
+<main
+	class="bg-gradient-to-r from-blue-500 to-blue-700 min-h-screen  dark:bg-gradient-to-r dark:from-gray-800 dark:to-gray-900"
+>
+	<slot />
+</main>
