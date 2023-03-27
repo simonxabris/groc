@@ -1,6 +1,6 @@
 import { AUTH_TOKEN_COOKIE_NAME } from '$lib/constants';
 import type { PageServerLoad } from './$types';
-import { verify } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '$env/static/private';
 
 export const load = (async ({ cookies }) => {
@@ -13,7 +13,7 @@ export const load = (async ({ cookies }) => {
 	}
 
 	try {
-		verify(authToken, JWT_SECRET);
+		jwt.verify(authToken, JWT_SECRET);
 	} catch (error) {
 		console.error('Failed to decrypt jwt token', error);
 		return {

@@ -1,7 +1,7 @@
 import { JWT_SECRET } from '$env/static/private';
 import { createConnection } from '$lib/server';
 import { error } from '@sveltejs/kit';
-import { sign } from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { AUTH_TOKEN_COOKIE_NAME } from '$lib/constants';
 import type { RequestHandler } from './$types';
 
@@ -40,9 +40,9 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	try {
-		const jwt = sign({ id: userId, email: userEmail }, JWT_SECRET, { expiresIn: '2w' });
+		const token = jwt.sign({ id: userId, email: userEmail }, JWT_SECRET, { expiresIn: '2w' });
 
-		cookies.set(AUTH_TOKEN_COOKIE_NAME, jwt, { path: '/' });
+		cookies.set(AUTH_TOKEN_COOKIE_NAME, token, { path: '/' });
 		return new Response('', {
 			status: 302,
 			headers: {
