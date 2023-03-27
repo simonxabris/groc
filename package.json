@@ -35,6 +35,7 @@
 	"dependencies": {
 		"@planetscale/database": "^1.6.0",
 		"@sveltejs/adapter-vercel": "^2.3.1",
+		"drizzle-orm": "^0.23.2",
 		"jsonwebtoken": "^9.0.0"
 	}
 }
