@@ -1,4 +1,4 @@
-import { AUTH_TOKEN_COOKIE_NAME } from '../../../../../../Users/asimon/src/groc/src/lib/constants';
+import { AUTH_TOKEN_COOKIE_NAME } from '$lib/constants';
 import type { PageServerLoad } from './$types';
 import { verify } from 'jsonwebtoken';
 import { JWT_SECRET } from '$env/static/private';
