@@ -1,11 +1,10 @@
 import { JWT_SECRET } from '$env/static/private';
 import { createConnection } from '$lib/server';
 import { error } from '@sveltejs/kit';
-import * as jose from 'jose';
+import { sign } from 'jsonwebtoken';
 import { AUTH_TOKEN_COOKIE_NAME } from '$lib/constants';
 import type { RequestHandler } from './$types';
 
-const jwtSecret = new TextEncoder().encode(JWT_SECRET);
 const connection = createConnection();
 
 export const GET: RequestHandler = async (event) => {
@@ -41,11 +40,7 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	try {
-		const jwt = await new jose.SignJWT({ id: userId, email: userEmail })
-			.setProtectedHeader({ alg: 'HS256' })
-			.setIssuedAt()
-			.setExpirationTime('1w')
-			.sign(jwtSecret);
+		const jwt = sign({ id: userId, email: userEmail }, JWT_SECRET, { expiresIn: '2w' });
 
 		cookies.set(AUTH_TOKEN_COOKIE_NAME, jwt, { path: '/' });
 		return new Response('', {

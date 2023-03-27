@@ -57,7 +57,7 @@ export const actions: Actions = {
 			throw error(500);
 		}
 
-		const loginUrl = new URL('/auth/login', event.url.origin);
+		const loginUrl = new URL('/auth/redirect', event.url.origin);
 		loginUrl.searchParams.set('token', encodeURIComponent(linkToken));
 
 		console.log('login URL: ', loginUrl.toString());
